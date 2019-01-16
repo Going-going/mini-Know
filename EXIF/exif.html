@@ -4,12 +4,19 @@
 	<meta charset="UTF-8">
 	<title>解决上传图片旋转问题</title>
 	<style>
-		#box{width: 400px;height: 400px;position: relative;border: 1px solid #e4e4e4;}
+		#box{width: 200px;height: 200px;position: relative;border: 1px solid #e4e4e4;}
 		#box img{display:block;max-width: 100%;max-height: 100%;position: absolute;;top: 0;left: 0;right: 0;bottom: 0;margin: auto;}
+		#box1{width: 200px;height: 200px;position: relative;border: 1px solid #e4e4e4;}
+		#box1 img{display:block;max-width: 100%;max-height: 100%;position: absolute;;top: 0;left: 0;right: 0;bottom: 0;margin: auto;}
 	</style>
 </head>
 <body>
 	<input id="file" type="file" accept="image/*" />
+	<p>不做操作的图片</p>
+	<div id="box1">
+		<img src="" alt="">
+	</div>
+	<p>做操作的图片</p>
 	<div id="box">
 		<img src="" alt="">
 	</div>
@@ -19,6 +26,7 @@
 	document.getElementById('file').onchange = function(e) {
 		
 		var file = e.target.files[0];
+		console.log(file)
 		var reader = new FileReader();
 		var Orientation;
 		EXIF.getData(file, function() {
@@ -32,28 +40,50 @@
 		var canvas = document.createElement('canvas');
 		var ctx = canvas.getContext('2d');
 		reader.onload = function(result) {
-			var image = new Image();
-			image.src = this.result;
-			image.onload = function() {
-				var imgWidth = this.width;
-				var imgHeight = this.height;
-				canvas.width = this.width;
-				canvas.height = this.height;
-
-
-				if(Orientation == 6){
-					canvas.width = this.height;
-					canvas.height = this.width;
-					console.log(Math.PI / 2)
-					ctx.rotate(90 * Math.PI / 180);
-					ctx.drawImage(this, 0, -this.height, this.width, this.height);
-				}
-
-				console.log(this.width, this.height);
-				document.getElementById('box').getElementsByTagName('img')[0].src = canvas.toDataURL('image/jpeg', 0.8);
-			}
+			CorrectDir({
+				url: result.target.result,
+				orientation: Orientation,
+				previewEl: document.getElementById('box').getElementsByTagName('img')[0]
+			})
+			// 正常不做操作图片显示
+			document.getElementById('box1').getElementsByTagName('img')[0].src = this.result;
 		}
 		reader.readAsDataURL(file);
+	}
+
+	function CorrectDir(options) {
+		var canvas = document.createElement('canvas');
+		var ctx = canvas.getContext('2d');
+		var image = new Image();
+		image.src = options.url;
+		image.onload = function() {
+			switch(options.orientation) {
+				case 3: // 旋转180度
+					canvas.width = this.width;
+					canvas.height = this.height;
+					ctx.rotate(180 * Math.PI / 180);
+					ctx.drawImage(this, -this.width, -this.height, this.width, this.height);
+					break;
+				case 6: // 旋转90度
+					canvas.width = this.height;
+					canvas.height = this.width;
+					ctx.rotate(90 * Math.PI / 180);
+					ctx.drawImage(this, 0, -this.height, this.width, this.height);
+					break;
+				case 8: // 旋转-90度
+					canvas.width = this.height;
+					canvas.height = this.width;
+					ctx.rotate(-90 * Math.PI / 180);
+					ctx.drawImage(this, -this.width, 0, this.width, this.height);
+					break;
+				default: 
+					canvas.width = this.width;
+					canvas.height = this.height;
+					ctx.drawImage(this, 0, 0, this.width, this.height)
+					break;
+			}
+			options.previewEl.src = canvas.toDataURL('image/jpeg', 0.8);
+		}
 	}
 </script>
 </html>
