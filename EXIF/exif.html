@@ -51,6 +51,8 @@
 		reader.readAsDataURL(file);
 	}
 
+
+	// 处理图片
 	function CorrectDir(options) {
 		var canvas = document.createElement('canvas');
 		var ctx = canvas.getContext('2d');
@@ -85,5 +87,6 @@
 			options.previewEl.src = canvas.toDataURL('image/jpeg', 0.8);
 		}
 	}
+	// 压缩图片
 </script>
 </html>
